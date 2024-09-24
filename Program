@@ -1,0 +1,720 @@
+import math
+import numpy as np
+from mpmath import *
+import sympy
+from sympy.solvers import solve
+import matplotlib.pyplot as plt
+from sympy import Symbol
+
+#Нулевой этап
+#Ввод начальных данных
+
+from tkinter import *
+from functools import partial
+
+
+tk = Tk()
+
+tk.geometry("900x570")
+
+tk.title('Начальные данные')
+
+tk.configure(background='khaki')
+
+name = Label(tk, text="Название материала монослоя", bg="gold1").place(x=30, y=10)
+
+e10 = Label(tk, text="Модуль упругости вдоль волокон E₁⁰, МПа", bg="gold1").place(x=30, y=50)
+
+e20 = Label(tk, text="Модуль упругости поперек волокон E₂⁰, МПа", bg="gold1").place(x=30, y=90)
+
+g120 = Label(tk, text="Модуль сдвига G₁₂⁰, МПа", bg="gold1").place(x=30, y=130)
+
+NU120 = Label(tk, text="Коэффициент Пуассона ν₁₂⁰", bg="gold1").place(x=30, y=170)
+
+N = Label(tk, text="Количество монослоев N", bg="gold1").place(x=30, y=210)
+
+ALPHA1 = Label(tk, text="Угол ориентации монослоя α₁,°", bg="gold1").place(x=30, y=250)
+
+ALPHA2 = Label(tk, text="Угол ориентации монослоя α₂,°", bg="gold1").place(x=30, y=290)
+
+ALPHA3 = Label(tk, text="Угол ориентации монослоя α₃,°", bg="gold1").place(x=30, y=330)
+
+ALPHA4 = Label(tk, text="Угол ориентации монослоя α₄,°", bg="gold1").place(x=30, y=370)
+
+P = Label(tk, text="Внутреннее давление p, МПа", bg="gold1").place(x=30, y=410)
+
+r = Label(tk, text="Средний радиус цилиндрической части баллона R, мм", bg="gold1").place(x=30, y=450)
+
+H = Label(tk, text="Толщина стенки баллона h, мм", bg="gold1").place(x=30, y=490)
+
+N1 = Label(tk, text="Количество пар слоев", bg="gold1").place(x=500, y=250)
+
+N2 = Label(tk, text="Количество пар слоев", bg="gold1").place(x=500, y=290)
+
+N3 = Label(tk, text="Количество пар слоев", bg="gold1").place(x=500, y=330)
+
+N4 = Label(tk, text="Количество пар слоев", bg="gold1").place(x=500, y=370)
+
+e0 = Entry(tk, bg="gold1")
+e0.place(x=350, y=10)
+
+v1 = StringVar(tk)
+e1 = Entry(tk, textvariable=v1, bg="gold1")
+e1.place(x=350, y=50)
+
+v2 = StringVar(tk)
+e2 = Entry(tk, textvariable=v2, bg="gold1")
+e2.place(x=350, y=90)
+
+v3 = StringVar(tk)
+e3 = Entry(tk, textvariable=v3, bg="gold1")
+e3.place(x=350, y=130)
+
+v4 = StringVar(tk)
+e4 = Entry(tk, textvariable=v4, bg="gold1")
+e4.place(x=350, y=170)
+
+v5 = StringVar(tk)
+e5 = Entry(tk, textvariable=v5, bg="gold1")
+e5.place(x=350, y=210)
+
+v6 = StringVar(tk)
+e6 = Entry(tk, textvariable=v6, bg="gold1")
+e6.place(x=350, y=250)
+
+v7 = StringVar(tk)
+e7 = Entry(tk, textvariable=v7, bg="gold1")
+e7.place(x=350, y=290)
+
+v8 = StringVar(tk)
+e8 = Entry(tk, textvariable=v8, bg="gold1")
+e8.place(x=350, y=330)
+
+v9 = StringVar(tk)
+e9 = Entry(tk, textvariable=v9, bg="gold1")
+e9.place(x=350, y=370)
+
+v10 = StringVar(tk)
+e10 = Entry(tk, textvariable=v10, bg="gold1")
+e10.place(x=350, y=410)
+
+v11 = StringVar(tk)
+e11 = Entry(tk, textvariable=v11, bg="gold1")
+e11.place(x=350, y=450)
+
+v12 = StringVar(tk)
+e12 = Entry(tk, textvariable=v12, bg="gold1")
+e12.place(x=350, y=490)
+
+v13 = StringVar(tk)
+e13 = Entry(tk, textvariable=v13, bg="gold1")
+e13.place(x=750, y=250)
+
+v14 = StringVar(tk)
+e14 = Entry(tk, textvariable=v14, bg="gold1")
+e14.place(x=750, y=290)
+
+v15 = StringVar(tk)
+e15 = Entry(tk, textvariable=v15, bg="gold1")
+e15.place(x=750, y=330)
+
+v16 = StringVar(tk)
+e16 = Entry(tk, textvariable=v16, bg="gold1")
+e16.place(x=750, y=370)
+
+
+
+
+def close_window():
+    tk.destroy()
+
+
+button = Button(tk, text="Все параметры заполнены", activebackground="pink", activeforeground="blue", bg="goldenrod1",
+                command=close_window).place(x=360, y=530)
+
+tk.mainloop()
+
+# Инициализация введенных в окошке параметров
+E10 = float(v1.get())
+E20 = float(v2.get())
+G120 = float(v3.get())
+nu120 = float(v4.get())
+N = float(v5.get())
+α1 = math.radians(float(v6.get()))
+α2 = math.radians(float(v7.get()))
+α3 = math.radians(float(v8.get()))
+α4 = math.radians(float(v9.get()))
+p = float(v10.get())
+R = float(v11.get())
+h = float(v12.get())
+A = [α1, α2, α3, α4]
+n1 = float(v13.get())
+n2 = float(v14.get())
+n3 = float(v15.get())
+n4 = float(v16.get())
+
+# Нахождение меньшего коэффициента Пуассона
+nu210 = nu120 * E20 / E10
+print("Коэффициент Пуассона ν₂₁⁰=", nu210)
+
+# Первый этап: пересчет технических констант в тензорные
+# Модуль упругости
+E110 = E10 / (1 - nu120 * nu210)
+E120 = E10 * nu210 / (1 - nu120 * nu210)
+E220 = E20 / (1 - nu120 * nu210)
+E660 = G120
+print("Компоненты тензора модулей упругостей:", "\n", "E₁₁⁰=", E110, "МПа", "\n", "E₁₂⁰=", E120, "МПа", "\n", "E₂₂⁰=",
+      E220, "МПа", "\n", "E₆₆⁰=", E660, "МПа")
+
+# Коэффициент упругой податливости
+S110 = 1 / E10
+S220 = 1 / E20
+S120 = -nu120 / E10
+S660 = 1 / G120
+print("Компоненты тензора модулей упругостей:", "\n", "S₁₁⁰=", S110, "МПа", "\n", "S₁₂⁰=", S120, "МПа", "\n", "S₂₂⁰=",
+      S220, "МПа", "\n", "S₆₆⁰=", S660, "МПа")
+
+#Второй этап
+
+def c(x):
+    p1 = math.cos(x)
+    return float(p1)
+
+def s(x):
+    p2 = math.sin(x)
+    return float(p2)
+
+def c2(x):
+    p3 = math.cos(x) ** 2
+    return float(p3)
+
+def c4(x):
+    p4 = math.cos(x) ** 4
+    return float(p4)
+
+def s2(x):
+    p5 = math.sin(x) ** 2
+    return float(p5)
+
+def s4(x):
+    p6 = math.sin(x) ** 4
+    return float(p6)
+
+def Ezz(x):
+    p7 = E110 * c4(x) + E220 * s4(x) + 2 * (E120 + 2 * E660) * s2(x) * c2(x)
+    return float(p7)
+
+def Eθθ(x):
+    p8 = E110 * s4(x) + E220 * c4(x) + 2 * (E120 + 2 * E660) * s2(x) * c2(x)
+    return float(p8)
+
+def Ezθ(x):
+    p9 = (E110 + E220 - 4 * E660) * s2(x) * c2(x) + E120 * (s4(x) + c4(x))
+    return float(p9)
+
+'''def Exxyy(x):
+    p10 = (E110 + E220 - 4 * E660) * s2(x) * c2(x) + E120 * (s4(x) + c4(x))
+    return float(p10)
+def Exxxy(x):
+    p11 = (E110 * c2(x) - E220 * s2(x) + (E120 + 2 * E660) * (s2(x) - c2(x))) * s(x) * c(x)
+    return float(p11)
+def Eyyxy(x):
+    p12 = (E110 * s2(x) - E220 * c2(x) - (E120 + 2 * E660) * (s2(x) - c2(x))) * c(x) * s(x)
+    return float(p12)'''
+
+def E0(x):
+    p13 = np.array(
+        [[Ezz(x), Ezθ(x)], [Ezθ(x), Eθθ(x)]])
+    return p13
+
+def Szz(x):
+    p14 = S110 * c4(x) + S220 * s4(x) + (2 * S120 + S660) * s2(x) * c2(x)
+    return float(p14)
+
+def Szθ(x):
+    p15 = (S110 + S220 - S660) * s2(x) * c2(x) + S120 * (s4(x) + c4(x))
+    return float(p15)
+
+def Sθθ(x):
+    p17 = S110 * s4(x) + S220 * c4(x) + (2 * S120 + S660) * s2(x) * c2(x)
+    return float(p17)
+
+def S0(x):
+    p20 = np.array(
+        [[Szz(x), Szθ(x)], [Szθ(x), Sθθ(x)]])
+    return p20
+
+# Третий этап: расчет упругих свойств всего пакета
+
+E = np.array([[2 * (n1 * Ezz(A[0]) + n2 * Ezz(A[1]) + n3 * Ezz(A[2]) + n4 * Ezz(A[3])) / N, 2 * (n1 * Ezθ(A[0]) + n2 * Ezθ(A[1]) + n3 * Ezθ(A[2]) + n4 * Ezθ(A[3])) / N],
+              [2 * (n1 * Ezθ(A[0]) + n2 * Ezθ(A[1]) + n3 * Ezθ(A[2]) + n4 * Ezθ(A[3])) / N, 2 * (n1 * Eθθ(A[0]) + n2 * Eθθ(A[1]) + n3 * Eθθ(A[2]) + n4 * Eθθ(A[3])) / N]])
+
+delta = E[0, 0] * E[1, 1] - E[0, 1] ** 2
+
+Szz_sum = E[1, 1] / delta
+Sθθ_sum = E[0, 0] / delta
+Szθ_sum = - E[0, 1] / delta
+
+S = np.array([[Szz_sum, Szθ_sum],
+              [Szθ_sum, Sθθ_sum]])
+
+# Четвертый этап: вычисление средней деформации
+σzz = p * R / (2 * h)
+σθθ = p * R / h
+σ = np.array([[σzz], [σθθ]])
+
+ε = S.dot(σ)
+
+# Пятый этап: расчет напряжений в каждом слое
+def σα(x):
+    p21 = E0(x).dot(ε)
+    return p21
+
+# Шестой этап: расчет напряжений вдоль волокон в каждом слое
+
+def σ1(x):
+    p22 = (σα(x)[0, 0] + σα(x)[1, 0] + (σα(x)[0, 0] - σα(x)[1, 0]) * c(2 * x)) / 2
+    return p22
+
+def σ2(x):
+    p23 = (σα(x)[0, 0] + σα(x)[1, 0] + (-σα(x)[0, 0] + σα(x)[1, 0]) * c(2 * x)) / 2
+    return p23
+
+def tau12(x):
+    p24 = (-σα(x)[0, 0] + σα(x)[1, 0]) * c(x) * s(x)
+    return p24
+
+σ1α1 = σα(α1)[0, 0]
+σ2α1 = σα(α1)[1, 0]
+σ1α2 = σα(α2)[0, 0]
+σ2α2 = σα(α2)[1, 0]
+σ1α3 = σα(α3)[0, 0]
+σ2α3 = σα(α3)[1, 0]
+σ1α4 = σα(α4)[0, 0]
+σ2α4 = σα(α4)[1, 0]
+print(σ1α1, σ2α1)
+print(σ1α2, σ2α2)
+print(σ1α3, σ2α3)
+print(σ1α4, σ2α4)
+
+tk2 = Tk()
+
+tk2.geometry("750x900")
+
+tk2.title('Данные, полученные на промежуточных этапах')
+
+tk2.configure(background='khaki')
+
+a1 = Label(tk2, text="Компоненты тензора модулей упругости и податливостей", bg="goldenrod1").place(x=190, y=10)
+
+a2 = Label(tk2, text="E₁₁⁰, МПа", bg="gold1").place(x=30, y=50)
+
+a20 = Label(tk2, text=str(E110), bg="gold1").place(x=270, y=50)
+
+a3 = Label(tk2, text="E₁₂⁰, МПа", bg="gold1").place(x=30, y=90)
+
+a30 = Label(tk2, text=str(E120), bg="gold1").place(x=270, y=90)
+
+a4 = Label(tk2, text="E₂₂⁰, МПа", bg="gold1").place(x=30, y=130)
+
+a40 = Label(tk2, text=str(E220), bg="gold1").place(x=270, y=130)
+
+a5 = Label(tk2, text="E₆₆⁰, МПа", bg="gold1").place(x=30, y=170)
+
+a50 = Label(tk2, text=str(E660), bg="gold1").place(x=270, y=170)
+
+
+
+b2 = Label(tk2, text="S₁₁⁰, МПа⁻¹", bg="gold1").place(x=30, y=210)
+
+b20 = Label(tk2, text=str(S110), bg="gold1").place(x=270, y=210)
+
+b3 = Label(tk2, text="S₁₂⁰, МПа⁻¹", bg="gold1").place(x=30, y=250)
+
+b30 = Label(tk2, text=str(S120), bg="gold1").place(x=270, y=250)
+
+b4 = Label(tk2, text="S₂₂⁰, МПа⁻¹", bg="gold1").place(x=30, y=290)
+
+b40 = Label(tk2, text=str(S220), bg="gold1").place(x=270, y=290)
+
+b5 = Label(tk2, text="S₆₆⁰, МПа⁻¹", bg="gold1").place(x=30, y=330)
+
+b50 = Label(tk2, text=str(S660), bg="gold1").place(x=270, y=330)
+
+
+c = Label(tk2, text="Эффективные модули упругости и податливости в проекциях на оси z—θ", bg="goldenrod1").place(x=170, y=370)
+
+d2 = Label(tk2, text="Ezz, МПа", bg="gold1").place(x=30, y=410)
+
+d20 = Label(tk2, text=str(E[0, 0]), bg="gold1").place(x=270, y=410)
+
+d3 = Label(tk2, text="Eθθ, МПа", bg="gold1").place(x=30, y=450)
+
+d30 = Label(tk2, text=str(E[1, 1]), bg="gold1").place(x=270, y=450)
+
+d4 = Label(tk2, text="Ezθ, МПа", bg="gold1").place(x=30, y=490)
+
+d40 = Label(tk2, text=str(E[0, 1]), bg="gold1").place(x=270, y=490)
+
+
+с2 = Label(tk2, text="Szz, МПа⁻¹", bg="gold1").place(x=30, y=530)
+
+с20 = Label(tk2, text=str(Szz_sum), bg="gold1").place(x=270, y=530)
+
+с3 = Label(tk2, text="Sθθ, МПа⁻¹", bg="gold1").place(x=30, y=570)
+
+с30 = Label(tk2, text=str(Sθθ_sum), bg="gold1").place(x=270, y=570)
+
+с4 = Label(tk2, text="Szθ, МПа⁻¹", bg="gold1").place(x=30, y=610)
+
+с40 = Label(tk2, text=str(Szθ_sum), bg="gold1").place(x=270, y=610)
+
+
+f0 = Label(tk2, text="Средние деформации", bg="goldenrod1").place(x=260, y=650)
+
+f1 = Label(tk2, text="εz", bg="gold1").place(x=30, y=690)
+
+f10 = Label(tk2, text=str(ε[0, 0]), bg="gold1").place(x=270, y=690)
+
+f2 = Label(tk2, text="εθ", bg="gold1").place(x=30, y=730)
+
+f20 = Label(tk2, text=str(ε[1, 0]), bg="gold1").place(x=270, y=730)
+
+
+def close_window2():
+    tk2.destroy()
+
+
+button2 = Button(tk2, text="Вывести напряжения в парах слоев", activebackground="pink", activeforeground="blue", bg="goldenrod1",
+                command=close_window2).place(x=250, y=800)
+
+tk2.mainloop()
+
+tk1 = Tk()
+
+tk1.geometry("900x420")
+
+tk1.title('Полученные напряжения')
+
+tk1.configure(background='khaki')
+
+name1 = Label(tk1, text="Напряжение в паре слоев ±α₁", bg="goldenrod1").place(x=370, y=10)
+
+σσ1α1 = Label(tk1, text="Напряжение в направлении z, МПа", bg="gold1").place(x=30, y=50)
+
+σσ2α1 = Label(tk1, text="Напряжение в направлении θ, МПа", bg="gold1").place(x=460, y=50)
+
+σσ1α11 = Label(tk1, text=str(σ1α1), bg="gold1").place(x=270, y=50)
+
+σσ2α12 = Label(tk1, text=str(σ2α1), bg="gold1").place(x=700, y=50)
+
+
+name2 = Label(tk1, text="Напряжение в паре слоев ±α₂", bg="goldenrod1").place(x=370, y=90)
+
+σσ1α2 = Label(tk1, text="Напряжение в направлении z, МПа", bg="gold1").place(x=30, y=130)
+
+σσ2α2 = Label(tk1, text="Напряжение в направлении θ, МПа", bg="gold1").place(x=460, y=130)
+
+σσ1α21 = Label(tk1, text=str(σ1α2), bg="gold1").place(x=270, y=130)
+
+σσ2α22 = Label(tk1, text=str(σ2α2), bg="gold1").place(x=700, y=130)
+
+
+
+name3 = Label(tk1, text="Напряжение в паре слоев ±α₃", bg="goldenrod1").place(x=370, y=170)
+
+σσ1α3 = Label(tk1, text="Напряжение в направлении z, МПа", bg="gold1").place(x=30, y=210)
+
+σσ2α3 = Label(tk1, text="Напряжение в направлении θ, МПа", bg="gold1").place(x=460, y=210)
+
+σσ1α31 = Label(tk1, text=str(σ1α3), bg="gold1").place(x=270, y=210)
+
+σσ2α32 = Label(tk1, text=str(σ2α3), bg="gold1").place(x=700, y=210)
+
+
+
+name4 = Label(tk1, text="Напряжение в паре слоев ±α₄", bg="goldenrod1").place(x=370, y=250)
+
+σσ1α4 = Label(tk1, text="Напряжение в направлении z, МПа", bg="gold1").place(x=30, y=290)
+
+σσ2α4 = Label(tk1, text="Напряжение в направлении θ, МПа", bg="gold1").place(x=460, y=290)
+
+σσ1α41 = Label(tk1, text=str(σ1α4), bg="gold1").place(x=270, y=290)
+
+σσ2α42 = Label(tk1, text=str(σ2α4), bg="gold1").place(x=700, y=290)
+
+
+
+def close_window1():
+    tk1.destroy()
+
+
+button1 = Button(tk1, text="Изобразить предельные поверхности", activebackground="pink", activeforeground="blue", bg="goldenrod1",
+                command=close_window1).place(x=340, y=360)
+
+
+tk1.mainloop()
+
+
+def σθ11(x):
+    p55 = x * (math.tan(α1)) ** 2 + σ45 * math.tan(α1)
+    return p55
+
+
+def σθ22(x):
+    p56 = x * (math.tan(α1)) ** 2 - σ45 * math.tan(α1)
+    return p56
+
+
+#Предельная поверхность для 18
+
+p = Symbol('p')
+
+σ45 = 300
+σ0 = 1100
+
+t1 = solve(p * (math.tan(α1)) **2 + σ45 * math.tan(α1) - (-p / ((math.tan(α1)) **2) + σ0 * (1 + math.tan(α1) ** 4) / (math.tan(α1) **2 * (1 + math.tan(α1) **2))), p)
+t2 = solve(p * (math.tan(α1)) **2 - σ45 * math.tan(α1) - (-p / ((math.tan(α1)) **2) + σ0 * (1 + math.tan(α1) ** 4) / (math.tan(α1) **2 * (1 + math.tan(α1) **2))), p)
+
+t3 = solve(σ2α1 - p * σ1α1, p)
+
+
+t4 = solve(p * float(t3[0]) - (p * (math.tan(α1)) **2 + σ45 * math.tan(α1)), p)
+tt1 = float(t1[0])
+tt2 = float(t2[0])
+tt4 = float(t4[0])
+tt5 = tt4 * float(t3[0])
+
+
+plt.grid()
+plt.ylim([0, 650])
+
+σz = np.arange(0, tt1, 10)
+σθ1 = σz * (math.tan(α1)) **2 + σ45 * math.tan(α1)
+plt.plot(σz, σθ1, color="black")
+
+σz = np.arange(0, tt2, 10)
+σθ2 = σz * (math.tan(α1)) **2 - σ45 * math.tan(α1)
+plt.plot(σz, σθ2, color="black")
+
+σz = np.arange(tt1, tt2, 10)
+σθ3 = -σz / ((math.tan(α1)) **2) + σ0 * (1 + math.tan(α1) ** 4) / (math.tan(α1) **2 * (1 + math.tan(α1) **2))
+plt.plot(σz, σθ3, color="black")
+
+σz = np.arange(0, tt4, 10)
+σθ4 = σz * float(t3[0])
+plt.plot(σz, σθ4, color="orange")
+
+plt.scatter(σ1α1, σ2α1, color="red")
+
+plt.scatter(tt4, tt5, color="red")
+
+plt.text(σ1α1, σ2α1-50, "B", size="16", ha="left")
+
+plt.text(tt4 + 25, tt5-25, "A", size="16", ha="left")
+
+plt.xlabel("σz, МПа", fontsize=16)
+plt.ylabel("σθ, МПа", fontsize=16)
+
+plt.show()
+
+OB18 = math.sqrt(σ1α1**2 + σ2α1**2)
+OA18 = math.sqrt(tt4**2 + tt5**2)
+k18 = OA18 / OB18
+print(k18)
+
+#Предельная поверхность для 52
+
+t1 = solve(p * (math.tan(α2)) **2 + σ45 * math.tan(α2) - (-p / ((math.tan(α2)) **2) + σ0 * (1 + math.tan(α2) ** 4) / (math.tan(α2) **2 * (1 + math.tan(α2) **2))), p)
+
+t2 = solve(p * (math.tan(α2)) **2 - σ45 * math.tan(α2) - (-p / ((math.tan(α2)) **2) + σ0 * (1 + math.tan(α2) ** 4) / (math.tan(α2) **2 * (1 + math.tan(α2) **2))), p)
+
+t3 = solve(σ2α2 - p * σ1α2, p)
+
+t4 = solve(p * float(t3[0]) - (-p / ((math.tan(α2)) **2) + σ0 * (1 + math.tan(α2) ** 4) / (math.tan(α2) **2 * (1 + math.tan(α2) **2))), p)
+
+tt1 = float(t1[0])
+tt2 = float(t2[0])
+tt4 = float(t4[0])
+tt5 = tt4 * float(t3[0])
+
+plt.grid()
+plt.ylim([0, 900])
+
+σz = np.arange(0, tt1, 10)
+σθ1 = σz * (math.tan(α2)) **2 + σ45 * math.tan(α2)
+plt.plot(σz, σθ1, color="black")
+
+σz = np.arange(0, tt2, 10)
+σθ2 = σz * (math.tan(α2)) **2 - σ45 * math.tan(α2)
+plt.plot(σz, σθ2, color="black")
+
+σz = np.arange(tt1, tt2, 10)
+σθ3 = -σz / ((math.tan(α2)) **2) + σ0 * (1 + math.tan(α2) ** 4) / (math.tan(α2) **2 * (1 + math.tan(α2) **2))
+plt.plot(σz, σθ3, color="black")
+
+σz = np.arange(0, tt4, 10)
+σθ4 = σz * float(t3[0])
+plt.plot(σz, σθ4, color="orange")
+
+plt.scatter(σ1α2, σ2α2, color="red")
+
+plt.scatter(tt4, tt5, color="red")
+
+plt.text(σ1α2, σ2α2-65, "B", size="16", ha="left")
+
+plt.text(tt4, tt5-65, "A", size="16", ha="left")
+
+plt.xlabel("σz, МПа", fontsize=16)
+plt.ylabel("σθ, МПа", fontsize=16)
+
+plt.show()
+
+OB52 = math.sqrt(σ1α2**2 + σ2α2**2)
+OA52 = math.sqrt(tt4**2 + tt5**2)
+k52 = OA52 / OB52
+print(k52)
+
+#Предельная поверхность для 63
+
+t1 = solve(p * (math.tan(α3)) **2 + σ45 * math.tan(α3) - (-p / ((math.tan(α3)) **2) + σ0 * (1 + math.tan(α3) ** 4) / (math.tan(α3) **2 * (1 + math.tan(α3) **2))), p)
+
+t2 = solve(p * (math.tan(α3)) **2 - σ45 * math.tan(α3) - (-p / ((math.tan(α3)) **2) + σ0 * (1 + math.tan(α3) ** 4) / (math.tan(α3) **2 * (1 + math.tan(α3) **2))), p)
+
+t3 = solve(σ2α3 - p * σ1α3, p)
+
+t4 = solve(p * float(t3[0]) - (-p / ((math.tan(α3)) **2) + σ0 * (1 + math.tan(α3) ** 4) / (math.tan(α3) **2 * (1 + math.tan(α3) **2))), p)
+
+tt1 = float(t1[0])
+
+tt2 = float(t2[0])
+tt4 = float(t4[0])
+
+tt5 = tt4 * float(t3[0])
+
+plt.grid()
+plt.ylim([0, 1000])
+
+σz = np.arange(0, tt1, 10)
+σθ1 = σz * (math.tan(α3)) **2 + σ45 * math.tan(α3)
+plt.plot(σz, σθ1, color="black")
+
+σz = np.arange(0, tt2, 10)
+σθ2 = σz * (math.tan(α3)) **2 - σ45 * math.tan(α3)
+plt.plot(σz, σθ2, color="black")
+
+σz = np.arange(tt1, tt2, 10)
+σθ3 = -σz / ((math.tan(α3)) **2) + σ0 * (1 + math.tan(α3) ** 4) / (math.tan(α3) **2 * (1 + math.tan(α3) **2))
+plt.plot(σz, σθ3, color="black")
+
+σz = np.arange(0, tt4, 10)
+σθ4 = σz * float(t3[0])
+plt.plot(σz, σθ4, color="orange")
+
+plt.scatter(σ1α3, σ2α3, color="red")
+
+plt.scatter(tt4, tt5, color="red")
+
+plt.text(σ1α3, σ2α3-65, "B", size="16", ha="left")
+
+plt.text(tt4, tt5-65, "A", size="16", ha="left")
+
+plt.xlabel("σz, МПа", fontsize=16)
+plt.ylabel("σθ, МПа", fontsize=16)
+
+plt.show()
+
+OB63 = math.sqrt(σ1α3**2 + σ2α3**2)
+OA63 = math.sqrt(tt4**2 + tt5**2)
+k63 = OA63 / OB63
+print(k63)
+
+#Предельная поверхность для 90
+t3 = solve(σ2α4 - p * σ1α4, p)
+t6 = solve(p * float(t3[0]) - σ0, p)
+
+plt.grid()
+plt.ylim([0, 1200])
+
+σz = np.arange(0, σ45, 1)
+σθ1 = σ0 + 0 * σz
+plt.plot( σz, σθ1, color="black")
+
+σz = [σ45, σ45+0.000000000000000001]
+σθ2 = [0, σ0]
+plt.plot(σz, σθ2, color="black")
+
+σz = np.arange(0, float(t6[0]), 1)
+σθ4 = σz * float(t3[0])
+plt.plot(σz, σθ4, color="orange")
+
+plt.scatter(σ1α4, σ2α4, color="red")
+
+plt.scatter(float(t6[0]), σ0, color="red")
+
+plt.text(σ1α4, σ2α4-65, "B", size="16", ha="left")
+
+plt.text(float(t6[0]), σ0-65, "A", size="16", ha="left")
+
+plt.xlabel("σz, МПа", fontsize=16)
+plt.ylabel("σθ, МПа", fontsize=16)
+
+plt.show()
+
+OB90 = math.sqrt(σ1α4**2 + σ2α4**2)
+OA90 = math.sqrt(float(t6[0]) **2 + σ0**2)
+k90 = OA90 / OB90
+print(k90)
+
+'''
+#Предельная поверхность для 54 44
+t1 = solve(p * (math.tan(α4)) **2 + σ45 * math.tan(α4) - (-p / ((math.tan(α4)) **2) + σ0 * (1 + math.tan(α4) ** 4) / (math.tan(α4) **2 * (1 + math.tan(α4) **2))), p)
+
+t2 = solve(p * (math.tan(α4)) **2 - σ45 * math.tan(α4) - (-p / ((math.tan(α4)) **2) + σ0 * (1 + math.tan(α4) ** 4) / (math.tan(α4) **2 * (1 + math.tan(α4) **2))), p)
+
+t3 = solve(σ2α2 - p * σ1α2, p)
+
+t4 = solve(p * float(t3[0]) - (-p / ((math.tan(α4)) **2) + σ0 * (1 + math.tan(α4) ** 4) / (math.tan(α4) **2 * (1 + math.tan(α4) **2))), p)
+
+tt1 = float(t1[0])
+tt2 = float(t2[0])
+tt4 = float(t4[0])
+tt5 = tt4 * float(t3[0])
+
+plt.grid()
+plt.ylim([0, 900])
+
+σz = np.arange(0, tt1, 10)
+σθ1 = σz * (math.tan(α4)) **2 + σ45 * math.tan(α4)
+plt.plot(σz, σθ1, color="black")
+
+σz = np.arange(0, tt2, 10)
+σθ2 = σz * (math.tan(α4)) **2 - σ45 * math.tan(α4)
+plt.plot(σz, σθ2, color="black")
+
+σz = np.arange(tt1, tt2, 10)
+σθ3 = -σz / ((math.tan(α4)) **2) + σ0 * (1 + math.tan(α4) ** 4) / (math.tan(α4) **2 * (1 + math.tan(α4) **2))
+plt.plot(σz, σθ3, color="black")
+
+σz = np.arange(0, tt4, 10)
+σθ4 = σz * float(t3[0])
+plt.plot(σz, σθ4, color="orange")
+
+plt.scatter(σ1α4, σ2α4, color="red")
+
+plt.scatter(tt4, tt5, color="red")
+
+plt.text(σ1α4, σ2α4-65, "B", size="16", ha="left")
+
+plt.text(tt4, tt5-65, "A", size="16", ha="left")
+
+plt.xlabel("σz, МПа", fontsize=16)
+plt.ylabel("σθ, МПа", fontsize=16)
+
+plt.show()
+
+OB = math.sqrt(σ1α4**2 + σ2α4**2)
+OA = math.sqrt(tt4**2 + tt5**2)
+k = OA / OB
+print(k)
+'''
